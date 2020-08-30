@@ -6,11 +6,13 @@ const canvasSize = 512;
 const solutionDim = 2;
 const seekingMemorySize = 10;
 const seekingRange = canvasSize / 100;
+const mayStayWhenSeeking = true;
 const interval = 10;
 const velocityMax = canvasSize * interval / 1000;
 function fitness(position) {
-    return constrain(0.001 * Math.pow(position[0] - canvasSize / 2, 2)
-        + 0.01 * Math.pow(position[1] - canvasSize / 2, 2), 0, 255);
+    return 0.0005 * Math.pow(position[0] - canvasSize / 2, 2)
+        + 0.005 * Math.pow(position[1] - canvasSize / 2, 2)
+        - 20 * Math.pow(Math.sin(position[0] / 100.0), 20);
 }
 const cats = [...Array(catNum)].map(() => {
     return {
@@ -29,12 +31,15 @@ function updateCats() {
     const argMinFitCat = argMin(fitnessVals);
     shuffledBits(catNum, tracingCatNum).forEach((bit, i) => {
         if (bit === 0) { // seeking
-            const newPositions = [...Array(seekingMemorySize)].map(() => [...Array(solutionDim).map((_, d) => cats[i].position[d] + (Math.random() * 2 - 1) * seekingRange)]);
+            const newPositions = [...Array(mayStayWhenSeeking ? seekingMemorySize - 1 : seekingMemorySize)].map(() => [...Array(solutionDim)].map((_, d) => cats[i].position[d] + (Math.random() * 2 - 1) * seekingRange));
+            if (mayStayWhenSeeking)
+                newPositions.push(cats[i].position);
             const newFitnessVals = newPositions.map(p => fitness(p));
             const newFitnessValMax = Math.max(...newFitnessVals);
-            const probs = newFitnessVals.map(newFitnessVal => newFitnessValMax - newFitnessVal);
+            const probs = newFitnessValMax - Math.min(...newFitnessVals) == 0 ?
+                newFitnessVals.map(() => 1) :
+                newFitnessVals.map(newFitnessVal => newFitnessValMax - newFitnessVal);
             cats[i].position = newPositions[roulette(probs)].map(x => constrain(x, 0, canvasSize));
-            alert("awawaw");
             //cats[i].position[0] += 2
             //cats[i].position[1] += 1
         }
@@ -57,8 +62,8 @@ window.onload = () => {
     }
     [...Array(canvasSize)].forEach((_, x) => {
         [...Array(canvasSize)].forEach((_, y) => {
-            const z = Math.floor(fitness([x, y]));
-            context.fillStyle = "rgb(" + [z, z, 255 - z].join(",") + ")";
+            const z = Math.floor(constrain(fitness([x, y]), 0, 255) / 10) * 10;
+            context.fillStyle = "rgb(" + [z, z, z].join(",") + ")";
             context.fillRect(x, y, 1, 1);
         });
     });

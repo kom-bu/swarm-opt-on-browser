@@ -42,7 +42,7 @@ function roulette(probs: number[]): number{
     let result = -1;
     const rand = Math.random()
     probs.forEach((_, i) => {
-        if (normalizedProbs[i] <= rand && rand < normalizedProbs[i + 1]) result = 1;
+        if (normalizedProbAccum[i] <= rand && rand < normalizedProbAccum[i + 1]) result = i;
     })
     return result;
 }
