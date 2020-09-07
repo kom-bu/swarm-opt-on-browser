@@ -9,6 +9,7 @@ const seekingRange = canvasSize / 100;
 const mayStayWhenSeeking = true;
 const interval = 10;
 const velocityMax = canvasSize * interval / 1000;
+const traceVelocityRate = 0.01;
 function fitness(position) {
     return 0.0005 * Math.pow(position[0] - canvasSize / 2, 2)
         + 0.005 * Math.pow(position[1] - canvasSize / 2, 2)
@@ -28,23 +29,34 @@ function updateCats() {
     });
     */
     const fitnessVals = cats.map(cat => fitness(cat.position));
-    const argMinFitCat = argMin(fitnessVals);
+    const fittestCat = cats[argMin(fitnessVals)];
     shuffledBits(catNum, tracingCatNum).forEach((bit, i) => {
+        const cat = cats[i];
         if (bit === 0) { // seeking
-            const newPositions = [...Array(mayStayWhenSeeking ? seekingMemorySize - 1 : seekingMemorySize)].map(() => [...Array(solutionDim)].map((_, d) => cats[i].position[d] + (Math.random() * 2 - 1) * seekingRange));
+            const newPositions = [...Array(mayStayWhenSeeking ? seekingMemorySize - 1 : seekingMemorySize)].map(() => [...Array(solutionDim)].map((_, d) => cat.position[d] + (Math.random() * 2 - 1) * seekingRange));
             if (mayStayWhenSeeking)
-                newPositions.push(cats[i].position);
+                newPositions.push(cat.position);
             const newFitnessVals = newPositions.map(p => fitness(p));
             const newFitnessValMax = Math.max(...newFitnessVals);
             const probs = newFitnessValMax - Math.min(...newFitnessVals) == 0 ?
                 newFitnessVals.map(() => 1) :
                 newFitnessVals.map(newFitnessVal => newFitnessValMax - newFitnessVal);
-            cats[i].position = newPositions[roulette(probs)].map(x => constrain(x, 0, canvasSize));
-            //cats[i].position[0] += 2
-            //cats[i].position[1] += 1
+            cat.position = newPositions[roulette(probs)];
         }
         else { // tracing
+            ///*
+            const coeff = Math.random() * traceVelocityRate;
+            [...Array(solutionDim)].forEach((_, d) => {
+                cat.velocity[d] += coeff * (fittestCat.position[d] - cat.position[d]);
+            });
+            cat.velocity = constrainVec(cat.velocity, velocityMax);
+            [...Array(solutionDim)].forEach((_, d) => {
+                cat.position[d] += cat.velocity[d];
+            }); //*/
         }
+        [...Array(solutionDim)].forEach((_, d) => {
+            cat.position[d] = constrain(cat.position[d], 0, canvasSize);
+        });
     });
 }
 window.onload = () => {

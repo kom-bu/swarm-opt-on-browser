@@ -21,13 +21,13 @@ function shuffledBits(n, k) {
 function constrain(x, lower, upper) {
     return Math.max(lower, Math.min(upper, x));
 }
-/*
-function constrainVec(v: number[], absBound: number): number[]{// bound inclusive
-    const absV = v.map(x => x^2).reduce((a, b) => a + b);
-    if (absV > absBound) return v.map(x => x * absBound / absV);
-    else return v;
+function constrainVec(v, absBound) {
+    const absV = v.map(x => x ^ 2).reduce((a, b) => a + b);
+    if (absV > absBound)
+        return v.map(x => x * absBound / absV);
+    else
+        return v;
 }
-*/
 function argMin(array) {
     return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] < r[0] ? a : r))[1];
 }
