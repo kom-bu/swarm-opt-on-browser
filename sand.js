@@ -1,5 +1,5 @@
 "use strict";
-const catNum = 5;
+const catNum = 10;
 const tracingCatNum = 2;
 const catImgSize = 32;
 const canvasSize = 512;
